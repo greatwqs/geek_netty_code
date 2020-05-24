@@ -20,21 +20,21 @@ public final class EchoServer {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         final EchoServerHandler serverHandler = new EchoServerHandler();
         try {
-            ServerBootstrap b = new ServerBootstrap();
-            b.group(workerGroup)
-             .channel(NioServerSocketChannel.class)
-             .handler(new LoggingHandler(LogLevel.INFO))
-             .childHandler(new ChannelInitializer<SocketChannel>() {
-                 @Override
-                 public void initChannel(SocketChannel ch) throws Exception {
-                     ChannelPipeline p = ch.pipeline();
-                     p.addLast(new LoggingHandler(LogLevel.INFO));
-                     p.addLast(serverHandler);
-                 }
-             });
+            ServerBootstrap serverBootstrap = new ServerBootstrap();
+            serverBootstrap.group(workerGroup)
+                    .channel(NioServerSocketChannel.class)
+                    .handler(new LoggingHandler(LogLevel.INFO))
+                    .childHandler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        public void initChannel(SocketChannel socketChannel) throws Exception {
+                            ChannelPipeline pipeline = socketChannel.pipeline();
+                            pipeline.addLast(new LoggingHandler(LogLevel.INFO));
+                            pipeline.addLast(serverHandler);
+                        }
+                    });
 
-            ChannelFuture f = b.bind(8090).sync();
-            f.channel().closeFuture().sync();
+            ChannelFuture channelFuture = serverBootstrap.bind(8090).sync();
+            channelFuture.channel().closeFuture().sync();
         } finally {
             workerGroup.shutdownGracefully();
         }
